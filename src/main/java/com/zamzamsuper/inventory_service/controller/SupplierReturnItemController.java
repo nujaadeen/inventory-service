@@ -26,7 +26,8 @@ public class SupplierReturnItemController {
     private final SupplierReturnItemService itemService;
 
     @PostMapping
-    public ResponseEntity<SupplierReturnItemResponse> createItem(@RequestBody SupplierReturnItemRequest request) {
+    public ResponseEntity<SupplierReturnItemResponse> createItem(
+            @RequestBody SupplierReturnItemRequest request) {
         return ResponseEntity.ok(itemService.createItem(request));
     }
 
@@ -42,8 +43,7 @@ public class SupplierReturnItemController {
 
     @PutMapping("/{id}")
     public ResponseEntity<SupplierReturnItemResponse> updateItem(
-            @PathVariable Long id, 
-            @RequestBody SupplierReturnItemRequest request) {
+            @PathVariable Long id, @RequestBody SupplierReturnItemRequest request) {
         return ResponseEntity.ok(itemService.updateItem(id, request));
     }
 

@@ -4,5 +4,4 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.zamzamsuper.inventory_service.model.StockAdjustment;
 
-public interface StockAdjustmentRepository extends JpaRepository<StockAdjustment, Long> {
-}
+public interface StockAdjustmentRepository extends JpaRepository<StockAdjustment, Long> {}

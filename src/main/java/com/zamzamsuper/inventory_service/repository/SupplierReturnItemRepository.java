@@ -4,5 +4,4 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.zamzamsuper.inventory_service.model.SupplierReturnItem;
 
-public interface SupplierReturnItemRepository extends JpaRepository<SupplierReturnItem, Long> {
-}
+public interface SupplierReturnItemRepository extends JpaRepository<SupplierReturnItem, Long> {}

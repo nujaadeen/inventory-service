@@ -8,15 +8,14 @@ import com.zamzamsuper.inventory_service.dto.BatchResponse;
 import com.zamzamsuper.inventory_service.enums.GRNStatus;
 
 public record GRNResponse(
-    Long id,
-    Long supplierId,
-    String supplierName,
-    String invoiceNum,
-    BigDecimal subTotalAmount,
-    BigDecimal totalDiscount,
-    BigDecimal grandTotalAmount,
-    GRNStatus status,
-    List<BatchResponse> batches,
-    LocalDateTime createdAt,
-    LocalDateTime updatedAt
-) {}
+        Long id,
+        Long supplierId,
+        String supplierName,
+        String invoiceNum,
+        BigDecimal subTotalAmount,
+        BigDecimal totalDiscount,
+        BigDecimal grandTotalAmount,
+        GRNStatus status,
+        List<BatchResponse> batches,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt) {}

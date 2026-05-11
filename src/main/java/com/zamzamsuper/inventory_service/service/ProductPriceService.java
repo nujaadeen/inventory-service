@@ -30,24 +30,29 @@ public class ProductPriceService {
     }
 
     public List<ProductPriceResponse> getAllPrices() {
-        return productPriceRepository.findAll()
-                .stream()
+        return productPriceRepository.findAll().stream()
                 .map(priceMapper::toResponse)
                 .collect(Collectors.toList());
     }
 
     public ProductPriceResponse getPriceById(Long id) {
-        ProductPrice price = productPriceRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Price not found with id " + id));
+        ProductPrice price =
+                productPriceRepository
+                        .findById(id)
+                        .orElseThrow(() -> new RuntimeException("Price not found with id " + id));
         return priceMapper.toResponse(price);
     }
 
     public ProductPriceResponse updatePrice(Long id, ProductPriceRequest request) {
-        ProductPrice existingPrice = productPriceRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Price not found with id " + id));
+        ProductPrice existingPrice =
+                productPriceRepository
+                        .findById(id)
+                        .orElseThrow(() -> new RuntimeException("Price not found with id " + id));
 
-        Batch batch = batchRepository.findById(request.batchId())
-                .orElseThrow(() -> new RuntimeException("Batch not found"));
+        Batch batch =
+                batchRepository
+                        .findById(request.batchId())
+                        .orElseThrow(() -> new RuntimeException("Batch not found"));
 
         existingPrice.setBatch(batch);
         existingPrice.setPriceType(request.priceType());

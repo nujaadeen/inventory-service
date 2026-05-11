@@ -16,7 +16,7 @@ public interface StockMapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "location", ignore = true) // Set manually in Service
-    @Mapping(target = "createdAt", ignore = true) 
-    @Mapping(target = "updatedAt", ignore = true) 
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     Stock toEntity(StockRequest request);
 }

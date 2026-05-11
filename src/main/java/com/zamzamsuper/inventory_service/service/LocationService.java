@@ -29,16 +29,18 @@ public class LocationService {
 
     // Read all
     public List<LocationResponse> getAllLocations() {
-        return locationRepository.findAll()
-                .stream()
+        return locationRepository.findAll().stream()
                 .map(locationMapper::toResponse)
                 .collect(Collectors.toList());
     }
 
     // Read by ID
     public LocationResponse getLocationById(Long id) {
-        Location location = locationRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Location not found with id " + id));
+        Location location =
+                locationRepository
+                        .findById(id)
+                        .orElseThrow(
+                                () -> new RuntimeException("Location not found with id " + id));
         return locationMapper.toResponse(location);
     }
 
@@ -46,11 +48,17 @@ public class LocationService {
     public LocationResponse updateLocation(Long id, LocationRequest locationRequest) {
         Location updatedLocation = locationMapper.toEntity(locationRequest);
 
-        Location saved = locationRepository.findById(id).map(location -> {
-            location.setName(updatedLocation.getName());
-            location.setActive(updatedLocation.isActive());
-            return locationRepository.save(location);
-        }).orElseThrow(() -> new RuntimeException("Location not found with id " + id));
+        Location saved =
+                locationRepository
+                        .findById(id)
+                        .map(
+                                location -> {
+                                    location.setName(updatedLocation.getName());
+                                    location.setActive(updatedLocation.isActive());
+                                    return locationRepository.save(location);
+                                })
+                        .orElseThrow(
+                                () -> new RuntimeException("Location not found with id " + id));
 
         return locationMapper.toResponse(saved);
     }

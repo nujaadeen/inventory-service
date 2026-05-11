@@ -27,11 +27,15 @@ public class SupplierReturnService {
     private final GRNRepository grnRepository;
 
     public SupplierReturnResponse createReturn(SupplierReturnRequest request) {
-        Supplier supplier = supplierRepository.findById(request.supplierId())
-                .orElseThrow(() -> new RuntimeException("Supplier not found"));
+        Supplier supplier =
+                supplierRepository
+                        .findById(request.supplierId())
+                        .orElseThrow(() -> new RuntimeException("Supplier not found"));
 
-        GRN grn = (request.originalGrnId() != null) ? 
-                grnRepository.findById(request.originalGrnId()).orElse(null) : null;
+        GRN grn =
+                (request.originalGrnId() != null)
+                        ? grnRepository.findById(request.originalGrnId()).orElse(null)
+                        : null;
 
         SupplierReturn supplierReturn = returnMapper.toEntity(request);
         supplierReturn.setSupplier(supplier);
@@ -41,28 +45,41 @@ public class SupplierReturnService {
     }
 
     public List<SupplierReturnResponse> getAllReturns() {
-        return returnRepository.findAll()
-                .stream()
+        return returnRepository.findAll().stream()
                 .map(returnMapper::toResponse)
                 .collect(Collectors.toList());
     }
 
     public SupplierReturnResponse getReturnById(Long id) {
-        SupplierReturn supplierReturn = returnRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Supplier Return not found with id " + id));
+        SupplierReturn supplierReturn =
+                returnRepository
+                        .findById(id)
+                        .orElseThrow(
+                                () ->
+                                        new RuntimeException(
+                                                "Supplier Return not found with id " + id));
         return returnMapper.toResponse(supplierReturn);
     }
 
     public SupplierReturnResponse updateReturn(Long id, SupplierReturnRequest request) {
-        SupplierReturn existing = returnRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Supplier Return not found with id " + id));
+        SupplierReturn existing =
+                returnRepository
+                        .findById(id)
+                        .orElseThrow(
+                                () ->
+                                        new RuntimeException(
+                                                "Supplier Return not found with id " + id));
 
-        Supplier supplier = supplierRepository.findById(request.supplierId())
-                .orElseThrow(() -> new RuntimeException("Supplier not found"));
+        Supplier supplier =
+                supplierRepository
+                        .findById(request.supplierId())
+                        .orElseThrow(() -> new RuntimeException("Supplier not found"));
 
         // GRN is optional in your model, so we handle nulls safely
-        GRN grn = (request.originalGrnId() != null) ? 
-                grnRepository.findById(request.originalGrnId()).orElse(null) : null;
+        GRN grn =
+                (request.originalGrnId() != null)
+                        ? grnRepository.findById(request.originalGrnId()).orElse(null)
+                        : null;
 
         existing.setSupplier(supplier);
         existing.setOriginalGrn(grn);

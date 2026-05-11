@@ -30,24 +30,31 @@ public class StockService {
     }
 
     public List<StockResponse> getAllStocks() {
-        return stockRepository.findAll()
-                .stream()
+        return stockRepository.findAll().stream()
                 .map(stockMapper::toResponse)
                 .collect(Collectors.toList());
     }
 
     public StockResponse getStockById(Long id) {
-        Stock stock = stockRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Stock record not found with id " + id));
+        Stock stock =
+                stockRepository
+                        .findById(id)
+                        .orElseThrow(
+                                () -> new RuntimeException("Stock record not found with id " + id));
         return stockMapper.toResponse(stock);
     }
 
     public StockResponse updateStock(Long id, StockRequest request) {
-        Stock existingStock = stockRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Stock record not found with id " + id));
+        Stock existingStock =
+                stockRepository
+                        .findById(id)
+                        .orElseThrow(
+                                () -> new RuntimeException("Stock record not found with id " + id));
 
-        Location location = locationRepository.findById(request.locationId())
-                .orElseThrow(() -> new RuntimeException("Location not found"));
+        Location location =
+                locationRepository
+                        .findById(request.locationId())
+                        .orElseThrow(() -> new RuntimeException("Location not found"));
 
         existingStock.setProductSku(request.productSku());
         existingStock.setLocation(location);

@@ -12,7 +12,7 @@ public interface SupplierMapper {
     SupplierResponse toResponse(Supplier entity);
 
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "createdAt", ignore = true) 
-    @Mapping(target = "updatedAt", ignore = true) 
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     Supplier toEntity(SupplierRequest request);
 }

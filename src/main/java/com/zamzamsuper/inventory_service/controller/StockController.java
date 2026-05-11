@@ -42,8 +42,7 @@ public class StockController {
 
     @PutMapping("/{id}")
     public ResponseEntity<StockResponse> updateStock(
-            @PathVariable Long id, 
-            @RequestBody StockRequest request) {
+            @PathVariable Long id, @RequestBody StockRequest request) {
         return ResponseEntity.ok(stockService.updateStock(id, request));
     }
 

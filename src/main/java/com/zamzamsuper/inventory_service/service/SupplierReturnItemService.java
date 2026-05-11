@@ -27,11 +27,15 @@ public class SupplierReturnItemService {
     private final BatchRepository batchRepository;
 
     public SupplierReturnItemResponse createItem(SupplierReturnItemRequest request) {
-        SupplierReturn supplierReturn = returnRepository.findById(request.supplierReturnId())
-                .orElseThrow(() -> new RuntimeException("Supplier Return not found"));
+        SupplierReturn supplierReturn =
+                returnRepository
+                        .findById(request.supplierReturnId())
+                        .orElseThrow(() -> new RuntimeException("Supplier Return not found"));
 
-        Batch batch = batchRepository.findById(request.batchId())
-                .orElseThrow(() -> new RuntimeException("Batch not found"));
+        Batch batch =
+                batchRepository
+                        .findById(request.batchId())
+                        .orElseThrow(() -> new RuntimeException("Batch not found"));
 
         SupplierReturnItem item = returnItemMapper.toEntity(request);
         item.setSupplierReturn(supplierReturn);
@@ -41,27 +45,36 @@ public class SupplierReturnItemService {
     }
 
     public List<SupplierReturnItemResponse> getAllItems() {
-        return returnItemRepository.findAll()
-                .stream()
+        return returnItemRepository.findAll().stream()
                 .map(returnItemMapper::toResponse)
                 .collect(Collectors.toList());
     }
 
     public SupplierReturnItemResponse getItemById(Long id) {
-        SupplierReturnItem item = returnItemRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Return item not found with id " + id));
+        SupplierReturnItem item =
+                returnItemRepository
+                        .findById(id)
+                        .orElseThrow(
+                                () -> new RuntimeException("Return item not found with id " + id));
         return returnItemMapper.toResponse(item);
     }
 
     public SupplierReturnItemResponse updateItem(Long id, SupplierReturnItemRequest request) {
-        SupplierReturnItem existing = returnItemRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Return item not found with id " + id));
+        SupplierReturnItem existing =
+                returnItemRepository
+                        .findById(id)
+                        .orElseThrow(
+                                () -> new RuntimeException("Return item not found with id " + id));
 
-        SupplierReturn supplierReturn = returnRepository.findById(request.supplierReturnId())
-                .orElseThrow(() -> new RuntimeException("Supplier Return not found"));
-        
-        Batch batch = batchRepository.findById(request.batchId())
-                .orElseThrow(() -> new RuntimeException("Batch not found"));
+        SupplierReturn supplierReturn =
+                returnRepository
+                        .findById(request.supplierReturnId())
+                        .orElseThrow(() -> new RuntimeException("Supplier Return not found"));
+
+        Batch batch =
+                batchRepository
+                        .findById(request.batchId())
+                        .orElseThrow(() -> new RuntimeException("Batch not found"));
 
         existing.setSupplierReturn(supplierReturn);
         existing.setBatch(batch);

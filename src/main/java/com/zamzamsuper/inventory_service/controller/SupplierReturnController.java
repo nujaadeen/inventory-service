@@ -26,7 +26,8 @@ public class SupplierReturnController {
     private final SupplierReturnService supplierReturnService;
 
     @PostMapping
-    public ResponseEntity<SupplierReturnResponse> createReturn(@RequestBody SupplierReturnRequest request) {
+    public ResponseEntity<SupplierReturnResponse> createReturn(
+            @RequestBody SupplierReturnRequest request) {
         return ResponseEntity.ok(supplierReturnService.createReturn(request));
     }
 
@@ -42,8 +43,7 @@ public class SupplierReturnController {
 
     @PutMapping("/{id}")
     public ResponseEntity<SupplierReturnResponse> updateReturn(
-            @PathVariable Long id, 
-            @RequestBody SupplierReturnRequest request) {
+            @PathVariable Long id, @RequestBody SupplierReturnRequest request) {
         return ResponseEntity.ok(supplierReturnService.updateReturn(id, request));
     }
 

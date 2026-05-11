@@ -19,10 +19,12 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
 @Builder
 @Entity
 @NoArgsConstructor
@@ -40,9 +42,8 @@ public class ProductPrice {
     @Column(nullable = false)
     private PriceType priceType;
 
-    @Builder.Default
-    private Boolean active = true;
-    
+    @Builder.Default private Boolean active = true;
+
     private Integer minQuantity;
     private BigDecimal price;
     private BigDecimal minPrice;
@@ -51,6 +52,5 @@ public class ProductPrice {
     @Column(updatable = false)
     private LocalDateTime createdAt;
 
-    @UpdateTimestamp
-    private LocalDateTime updatedAt;
+    @UpdateTimestamp private LocalDateTime updatedAt;
 }

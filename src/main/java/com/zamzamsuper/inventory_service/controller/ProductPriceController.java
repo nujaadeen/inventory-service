@@ -26,7 +26,8 @@ public class ProductPriceController {
     private final ProductPriceService productPriceService;
 
     @PostMapping
-    public ResponseEntity<ProductPriceResponse> createPrice(@RequestBody ProductPriceRequest request) {
+    public ResponseEntity<ProductPriceResponse> createPrice(
+            @RequestBody ProductPriceRequest request) {
         return ResponseEntity.ok(productPriceService.createPrice(request));
     }
 
@@ -42,8 +43,7 @@ public class ProductPriceController {
 
     @PutMapping("/{id}")
     public ResponseEntity<ProductPriceResponse> updatePrice(
-            @PathVariable Long id, 
-            @RequestBody ProductPriceRequest request) {
+            @PathVariable Long id, @RequestBody ProductPriceRequest request) {
         return ResponseEntity.ok(productPriceService.updatePrice(id, request));
     }
 

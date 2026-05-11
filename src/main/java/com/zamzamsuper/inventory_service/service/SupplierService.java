@@ -27,21 +27,26 @@ public class SupplierService {
     }
 
     public List<SupplierResponse> getAllSuppliers() {
-        return supplierRepository.findAll()
-                .stream()
+        return supplierRepository.findAll().stream()
                 .map(supplierMapper::toResponse)
                 .collect(Collectors.toList());
     }
 
     public SupplierResponse getSupplierById(Long id) {
-        Supplier supplier = supplierRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Supplier not found with id " + id));
+        Supplier supplier =
+                supplierRepository
+                        .findById(id)
+                        .orElseThrow(
+                                () -> new RuntimeException("Supplier not found with id " + id));
         return supplierMapper.toResponse(supplier);
     }
 
     public SupplierResponse updateSupplier(Long id, SupplierRequest request) {
-        Supplier supplier = supplierRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Supplier not found with id " + id));
+        Supplier supplier =
+                supplierRepository
+                        .findById(id)
+                        .orElseThrow(
+                                () -> new RuntimeException("Supplier not found with id " + id));
 
         supplier.setName(request.name());
         supplier.setPhone(request.phone());

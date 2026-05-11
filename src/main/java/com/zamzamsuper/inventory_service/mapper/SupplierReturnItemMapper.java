@@ -17,7 +17,7 @@ public interface SupplierReturnItemMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "supplierReturn", ignore = true) // Set manually in Service
     @Mapping(target = "batch", ignore = true) // Set manually in Service
-    @Mapping(target = "createdAt", ignore = true) 
-    @Mapping(target = "updatedAt", ignore = true) 
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     SupplierReturnItem toEntity(SupplierReturnItemRequest request);
 }

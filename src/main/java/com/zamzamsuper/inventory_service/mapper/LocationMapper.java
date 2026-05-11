@@ -12,7 +12,7 @@ public interface LocationMapper {
     LocationResponse toResponse(Location entity);
 
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "createdAt", ignore = true) 
-    @Mapping(target = "updatedAt", ignore = true) 
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     Location toEntity(LocationRequest request);
 }

@@ -15,7 +15,7 @@ public interface StockAdjustmentMapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "batch", ignore = true) // Set manually in Service
-    @Mapping(target = "createdAt", ignore = true) 
-    @Mapping(target = "updatedAt", ignore = true) 
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     StockAdjustment toEntity(StockAdjustmentRequest request);
 }

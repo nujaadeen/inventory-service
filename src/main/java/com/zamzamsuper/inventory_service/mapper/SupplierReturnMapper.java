@@ -17,8 +17,7 @@ public interface SupplierReturnMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "supplier", ignore = true) // Set manually in Service
     @Mapping(target = "originalGrn", ignore = true) // Set manually in Service
-    @Mapping(target = "createdAt", ignore = true) 
-    @Mapping(target = "updatedAt", ignore = true) 
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     SupplierReturn toEntity(SupplierReturnRequest request);
-
 }

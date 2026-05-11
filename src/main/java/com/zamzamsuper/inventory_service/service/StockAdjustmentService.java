@@ -24,8 +24,10 @@ public class StockAdjustmentService {
     private final BatchRepository batchRepository;
 
     public StockAdjustmentResponse createAdjustment(StockAdjustmentRequest request) {
-        Batch batch = batchRepository.findById(request.batchId())
-                .orElseThrow(() -> new RuntimeException("Batch not found"));
+        Batch batch =
+                batchRepository
+                        .findById(request.batchId())
+                        .orElseThrow(() -> new RuntimeException("Batch not found"));
 
         StockAdjustment adjustment = adjustmentMapper.toEntity(request);
         adjustment.setBatch(batch);
@@ -34,24 +36,31 @@ public class StockAdjustmentService {
     }
 
     public List<StockAdjustmentResponse> getAllAdjustments() {
-        return adjustmentRepository.findAll()
-                .stream()
+        return adjustmentRepository.findAll().stream()
                 .map(adjustmentMapper::toResponse)
                 .collect(Collectors.toList());
     }
 
     public StockAdjustmentResponse getAdjustmentById(Long id) {
-        StockAdjustment adjustment = adjustmentRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Adjustment not found with id " + id));
+        StockAdjustment adjustment =
+                adjustmentRepository
+                        .findById(id)
+                        .orElseThrow(
+                                () -> new RuntimeException("Adjustment not found with id " + id));
         return adjustmentMapper.toResponse(adjustment);
     }
 
     public StockAdjustmentResponse updateAdjustment(Long id, StockAdjustmentRequest request) {
-        StockAdjustment existing = adjustmentRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Adjustment not found with id " + id));
+        StockAdjustment existing =
+                adjustmentRepository
+                        .findById(id)
+                        .orElseThrow(
+                                () -> new RuntimeException("Adjustment not found with id " + id));
 
-        Batch batch = batchRepository.findById(request.batchId())
-                .orElseThrow(() -> new RuntimeException("Batch not found"));
+        Batch batch =
+                batchRepository
+                        .findById(request.batchId())
+                        .orElseThrow(() -> new RuntimeException("Batch not found"));
 
         existing.setBatch(batch);
         existing.setStaffId(request.staffId());

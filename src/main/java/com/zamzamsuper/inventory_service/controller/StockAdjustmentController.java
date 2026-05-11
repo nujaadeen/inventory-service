@@ -26,7 +26,8 @@ public class StockAdjustmentController {
     private final StockAdjustmentService adjustmentService;
 
     @PostMapping
-    public ResponseEntity<StockAdjustmentResponse> createAdjustment(@RequestBody StockAdjustmentRequest request) {
+    public ResponseEntity<StockAdjustmentResponse> createAdjustment(
+            @RequestBody StockAdjustmentRequest request) {
         return ResponseEntity.ok(adjustmentService.createAdjustment(request));
     }
 
@@ -42,8 +43,7 @@ public class StockAdjustmentController {
 
     @PutMapping("/{id}")
     public ResponseEntity<StockAdjustmentResponse> updateAdjustment(
-            @PathVariable Long id, 
-            @RequestBody StockAdjustmentRequest request) {
+            @PathVariable Long id, @RequestBody StockAdjustmentRequest request) {
         return ResponseEntity.ok(adjustmentService.updateAdjustment(id, request));
     }
 
