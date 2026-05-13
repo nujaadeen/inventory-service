@@ -8,14 +8,15 @@ import java.util.List;
 import com.zamzamsuper.inventory_service.enums.BatchStatus;
 
 public record BatchResponse(
-        Long id,
-        Long stockId,
-        Long grnId,
-        LocalDate expiryDate,
-        String batchNumber,
-        BigDecimal costPrice,
-        Integer quantity,
-        BatchStatus status,
-        List<ProductPriceResponse> prices,
-        LocalDateTime createdAt,
-        LocalDateTime updatedAt) {}
+    Long id,
+    Long stockId,
+    Long grnId,
+    LocalDate expiryDate,
+    String batchNumber,
+    BigDecimal costPrice,
+    BigDecimal quantity,
+    BatchStatus status,
+    List<ProductPriceResponse> prices,
+    LocalDateTime createdAt,
+    LocalDateTime updatedAt
+) {}

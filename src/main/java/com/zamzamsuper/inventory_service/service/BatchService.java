@@ -62,7 +62,7 @@ public class BatchService {
                                                         + request.locationId()));
 
         // Update Stock Total
-        stock.setQuantityOnHand(stock.getQuantityOnHand() + request.quantity());
+        stock.setQuantityOnHand(stock.getQuantityOnHand().add(request.quantity()));
         stockRepository.save(stock);
 
         Batch batch =
@@ -119,9 +119,9 @@ public class BatchService {
 
         // CRITICAL: Adjust Stock quantity if the Batch quantity changed
         if (!existingBatch.getQuantity().equals(request.quantity())) {
-            int difference = request.quantity() - existingBatch.getQuantity();
+            BigDecimal difference = request.quantity().subtract(existingBatch.getQuantity());
             Stock stock = existingBatch.getStock();
-            stock.setQuantityOnHand(stock.getQuantityOnHand() + difference);
+            stock.setQuantityOnHand(stock.getQuantityOnHand().add(difference));
             stockRepository.save(stock);
         }
 
@@ -158,7 +158,7 @@ public class BatchService {
 
         // CRITICAL: Deduct quantity from stock before deleting the batch
         Stock stock = batch.getStock();
-        stock.setQuantityOnHand(stock.getQuantityOnHand() - batch.getQuantity());
+        stock.setQuantityOnHand(stock.getQuantityOnHand().subtract(batch.getQuantity()));
         stockRepository.save(stock);
 
         batchRepository.delete(batch);
@@ -176,7 +176,7 @@ public class BatchService {
 
         BigDecimal newSubTotal =
                 currentBatches.stream()
-                        .map(b -> b.getCostPrice().multiply(BigDecimal.valueOf(b.getQuantity())))
+                        .map(b -> b.getCostPrice().multiply(b.getQuantity()))
                         .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         grn.setSubTotalAmount(newSubTotal);

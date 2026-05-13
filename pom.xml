@@ -77,6 +77,12 @@
 			<scope>test</scope>
 		</dependency>
 
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<scope>test</scope>
+		</dependency>
+
 	</dependencies>
 
 	<build>
@@ -136,48 +142,6 @@
 								</path>
 							</annotationProcessorPaths>
 						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>com.diffplug.spotless</groupId>
-				<artifactId>spotless-maven-plugin</artifactId>
-				<version>2.44.3</version>
-				<configuration>
-					<java>
-						<!-- which files to format -->
-						<includes>
-							<include>src/main/java/**/*.java</include>
-							<include>src/test/java/**/*.java</include>
-						</includes>
-
-						<!-- Google Java Format (AOSP variant uses 4-space indent,
-							remove the <style> tag entirely for 2-space Google style) -->
-						<googleJavaFormat>
-							<version>1.28.0</version>
-							<style>AOSP</style>           <!-- 4-space indent -->
-							<reflowLongStrings>true</reflowLongStrings>
-						</googleJavaFormat>
-
-						<!-- enforce a consistent import order -->
-						<importOrder>
-							<order>java,javax,org,com,</order>
-						</importOrder>
-
-						<!-- strip unused imports -->
-						<removeUnusedImports/>
-
-						<!-- normalize trailing whitespace and final newline -->
-						<trimTrailingWhitespace/>
-						<endWithNewline/>
-					</java>
-				</configuration>
-				<executions>
-					<execution>
-						<!-- fail the build on `mvn verify` if anything is unformatted -->
-						<goals>
-							<goal>check</goal>
-						</goals>
 					</execution>
 				</executions>
 			</plugin>

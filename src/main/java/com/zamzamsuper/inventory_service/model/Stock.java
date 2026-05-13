@@ -1,5 +1,6 @@
 package com.zamzamsuper.inventory_service.model;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import org.hibernate.annotations.CreationTimestamp;
@@ -36,8 +37,8 @@ public class Stock {
     @JoinColumn(name = "location_id", nullable = false)
     private Location location;
 
-    private Integer quantityOnHand;
-    private Integer reorderLevel;
+    private BigDecimal quantityOnHand;
+    private BigDecimal reorderLevel;
 
     @CreationTimestamp
     @Column(updatable = false)

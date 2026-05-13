@@ -1,5 +1,6 @@
 package com.zamzamsuper.inventory_service.repository;
 
+import java.math.BigDecimal;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -15,17 +16,11 @@ public interface StockRepository extends JpaRepository<Stock, Long> {
 
     @Modifying
     @Query("UPDATE Stock s SET s.quantityOnHand = s.quantityOnHand + :qty WHERE s.id = :id")
-    void incrementQuantity(@Param("id") Long id, @Param("qty") Integer qty);
+    void incrementQuantity(@Param("id") Long id, @Param("qty") BigDecimal qty);
 
     @Modifying
     @Query(
             "UPDATE Stock s SET s.quantityOnHand = s.quantityOnHand - :qty WHERE s.id = :id AND"
                     + " s.quantityOnHand >= :qty")
-    int decrementQuantity(@Param("id") Long id, @Param("qty") Integer qty);
-
-    @Modifying
-    @Query(
-            "UPDATE Stock s SET s.quantityOnHand = s.quantityOnHand - :qty "
-                    + "WHERE s.id = :id AND s.quantityOnHand >= :qty")
-    int decrementStockSafely(@Param("id") Long id, @Param("qty") Integer qty);
+    int decrementQuantity(@Param("id") Long id, @Param("qty") BigDecimal qty);
 }

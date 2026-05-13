@@ -35,7 +35,7 @@ import com.zamzamsuper.inventory_service.repository.GRNRepository;
 import com.zamzamsuper.inventory_service.repository.LocationRepository;
 import com.zamzamsuper.inventory_service.repository.StockRepository;
 import com.zamzamsuper.inventory_service.repository.SupplierRepository;
-import com.zamzamsuper.inventory_service.repository.specification.GRNSpecifications;
+import com.zamzamsuper.inventory_service.repository.specification.GRNSpecification;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -79,7 +79,7 @@ public class GRNService {
             // Atomic Update in DB (Avoids Race Conditions)
             stockRepository.incrementQuantity(stock.getId(), bReq.quantity());
 
-            // Process associated batchs entity and link to GRN
+            // Process associated batches entity and link to GRN
             Batch batch = batchMapper.toEntity(bReq);
             batch.setStock(stock);
             grn.addBatch(batch);
@@ -110,7 +110,7 @@ public class GRNService {
             Pageable pageable) {
         // Step 1: Get Paged IDs with Filters
         Specification<GRN> spec =
-                GRNSpecifications.withFilters(invoiceNum, supplierId, status, startDate, endDate);
+                GRNSpecification.withFilters(invoiceNum, supplierId, status, startDate, endDate);
         Page<GRN> grnPage = grnRepository.findAll(spec, pageable);
 
         if (grnPage.isEmpty()) return Page.empty();
@@ -118,11 +118,11 @@ public class GRNService {
         List<Long> grnIds = grnPage.getContent().stream().map(GRN::getId).toList();
 
         // Step 2: Fetch GRNs + Batches (1st Level Join)
-        List<GRN> grnsWithBatches = grnRepository.findAllWithBatchesByIds(grnIds);
+        List<GRN> grnWithBatches = grnRepository.findAllByIdWithBatches(grnIds);
 
         // Step 3: Fetch Batches + Prices (2nd Level Join)
         List<Long> batchIds =
-                grnsWithBatches.stream()
+                grnWithBatches.stream()
                         .flatMap(g -> g.getBatches().stream())
                         .map(Batch::getId)
                         .toList();
@@ -134,10 +134,10 @@ public class GRNService {
         }
 
         // Step 4: Map to DTOs
-        List<GRNResponse> dtos =
-                grnsWithBatches.stream().map(grnMapper::toResponse).collect(Collectors.toList());
+        List<GRNResponse> listOfDto =
+                grnWithBatches.stream().map(grnMapper::toResponse).collect(Collectors.toList());
 
-        return new PageImpl<>(dtos, pageable, grnPage.getTotalElements());
+        return new PageImpl<>(listOfDto, pageable, grnPage.getTotalElements());
     }
 
     @Transactional(readOnly = true)
@@ -194,7 +194,7 @@ public class GRNService {
 
         log.debug("GRN Header updated | New GrandTotal: {}", existingGrn.getGrandTotalAmount());
 
-        return grnMapper.toResponse(grnRepository.save(existingGrn));
+        return grnMapper.toResponse(existingGrn);
     }
 
     @Transactional
@@ -234,7 +234,7 @@ public class GRNService {
                     batch.getQuantity());
 
             int updated =
-                    stockRepository.decrementStockSafely(
+                    stockRepository.decrementQuantity(
                             batch.getStock().getId(), batch.getQuantity());
 
             if (updated == 0) {
@@ -306,7 +306,7 @@ public class GRNService {
     private void validateFinancials(GRNCreateRequest request) {
         BigDecimal calculatedSubTotal =
                 request.batches().stream()
-                        .map(b -> b.costPrice().multiply(BigDecimal.valueOf(b.quantity())))
+                        .map(b -> b.costPrice().multiply(b.quantity()))
                         .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         if (calculatedSubTotal.compareTo(request.subTotalAmount()) != 0) {
@@ -342,8 +342,7 @@ public class GRNService {
                                     Stock.builder()
                                             .productSku(productSku)
                                             .location(location)
-                                            .quantityOnHand(0)
-                                            .reorderLevel(10)
+                                            .quantityOnHand(BigDecimal.ZERO)
                                             .build());
                         });
     }

@@ -1,4 +1,6 @@
 package com.zamzamsuper.inventory_service.dto;
 
+import java.math.BigDecimal;
+
 public record StockRequest(
-        String productSku, Long locationId, Integer quantityOnHand, Integer reorderLevel) {}
+        String productSku, Long locationId, BigDecimal quantityOnHand, BigDecimal reorderLevel) {}

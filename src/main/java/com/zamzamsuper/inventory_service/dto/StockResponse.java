@@ -1,5 +1,6 @@
 package com.zamzamsuper.inventory_service.dto;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 public record StockResponse(
@@ -7,7 +8,7 @@ public record StockResponse(
         String productSku,
         Long locationId,
         String locationName,
-        Integer quantityOnHand,
-        Integer reorderLevel,
+        BigDecimal quantityOnHand,
+        BigDecimal reorderLevel,
         LocalDateTime createdAt,
         LocalDateTime updatedAt) {}

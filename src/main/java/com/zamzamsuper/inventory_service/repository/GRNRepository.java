@@ -11,13 +11,9 @@ import org.springframework.data.repository.query.Param;
 import com.zamzamsuper.inventory_service.model.GRN;
 
 public interface GRNRepository extends JpaRepository<GRN, Long>, JpaSpecificationExecutor<GRN> {
-    @Query("SELECT DISTINCT g FROM GRN g " + "LEFT JOIN FETCH g.batches b "
-            + "LEFT JOIN FETCH b.prices p")
-    List<GRN> findAllWithBatchesAndPrices();
-
     @Query("SELECT g FROM GRN g " + "LEFT JOIN FETCH g.batches b " + "WHERE g.id = :id")
     Optional<GRN> findByIdWithBatches(@Param("id") Long id);
 
     @Query("SELECT DISTINCT g FROM GRN g " + "LEFT JOIN FETCH g.batches b " + "WHERE g.id IN :ids")
-    List<GRN> findAllWithBatchesByIds(@Param("ids") List<Long> ids);
+    List<GRN> findAllByIdWithBatches(@Param("ids") List<Long> ids);
 }

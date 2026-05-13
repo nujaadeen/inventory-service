@@ -59,7 +59,7 @@ public class Batch {
     private java.time.LocalDate expiryDate;
     private String batchNumber;
     private BigDecimal costPrice;
-    private Integer quantity;
+    private BigDecimal quantity;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
