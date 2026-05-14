@@ -817,7 +817,7 @@ class GRNServiceTest {
             // We explicitly verify that decrementQuantity was NEVER called for stock1
             verify(stockRepository, never()).decrementQuantity(eq(100L), any());
 
-            // Verify parent GRN was still cancelled at the end
+            // Verify parent GRN was still canceled at the end
             assertThat(existingGrn.getStatus()).isEqualTo(GRNStatus.CANCELLED);
         }
     }
