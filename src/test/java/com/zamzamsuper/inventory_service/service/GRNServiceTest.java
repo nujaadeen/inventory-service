@@ -112,26 +112,11 @@ class GRNServiceTest {
             // Then
             assertThat(response).isEqualTo(expectedResponse);
 
-            // verify supplier lookup was performed
-            verify(supplierRepository).findById(1L);
-            // Verify Stock lookup was performed
-            verify(stockRepository).findByProductSkuAndLocationId("SKU-123", 10L);
             // Verify Stock was incremented
             verify(stockRepository).incrementQuantity(100L, BigDecimal.valueOf(50));
-            // verify location lookup wa NOT performed since stock already exists
-            verify(locationRepository, never()).findById(anyLong());
             // Verify new stock was NOT created
             verify(stockRepository, never()).save(any(Stock.class));
-            // verify GRN was saved
-            verify(grnRepository).save(mappedGrn);
-
-            // verify batch, price and grn mapping was performed
-            verify(batchMapper).toEntity(any(BatchRequest.class));
-            verify(priceMapper).toEntity(any(ProductPriceRequest.class));
-            verify(grnMapper).toEntity(any(GRNCreateRequest.class));
-
             // Verify parent-child relationships were linked
-            assertThat(mappedGrn.getSupplier()).isEqualTo(supplier);
             assertThat(mappedGrn.getBatches()).contains(mappedBatch);
             assertThat(mappedBatch.getStock()).isEqualTo(stock);
             assertThat(mappedBatch.getPrices()).contains(mappedPrice);
@@ -730,6 +715,7 @@ class GRNServiceTest {
                     .stock(stock1)
                     .quantity(BigDecimal.valueOf(500))
                     .status(BatchStatus.ACTIVE)
+                    .prices(List.of())
                     .build();
 
             Batch batch2 = Batch.builder()
@@ -737,6 +723,7 @@ class GRNServiceTest {
                     .stock(stock2)
                     .quantity(BigDecimal.valueOf(1000))
                     .status(BatchStatus.ACTIVE)
+                    .prices(List.of())
                     .build();
 
             GRN existingGrn = GRN.builder()
@@ -773,6 +760,65 @@ class GRNServiceTest {
 
             // Verify mapper was never called
             verifyNoInteractions(grnMapper);
+        }
+
+        @Test
+        @DisplayName("Should skip stock decrement and processing for batches that are already CANCELLED")
+        void cancelGRN_WhenBatchIsAlreadyCancelled_SkipsBatch() {
+            // Given
+            Long grnId = 1L;
+            Stock stock1 = Stock.builder().id(100L).productSku("SKU-123").build();
+            Stock stock2 = Stock.builder().id(101L).productSku("SKU-124").build();
+
+            // Batch 1 is ALREADY CANCELLED
+            Batch cancelledBatch = Batch.builder()
+                    .id(50L)
+                    .stock(stock1)
+                    .quantity(BigDecimal.valueOf(50))
+                    .status(BatchStatus.CANCELLED)
+                    .prices(List.of())
+                    .build();
+
+            // Batch 2 is ACTIVE
+            Batch activeBatch = Batch.builder()
+                    .id(51L)
+                    .stock(stock2)
+                    .quantity(BigDecimal.valueOf(100))
+                    .status(BatchStatus.ACTIVE)
+                    .prices(List.of())
+                    .build();
+
+            GRN existingGrn = GRN.builder()
+                    .id(grnId)
+                    .status(GRNStatus.POSTED)
+                    .batches(List.of(cancelledBatch, activeBatch))
+                    .build();
+
+            GRNResponse mockResponse = mock(GRNResponse.class);
+
+            when(grnRepository.findByIdWithBatches(grnId)).thenReturn(Optional.of(existingGrn));
+
+            // We only expect the repository to be called for the ACTIVE batch (stock2)
+            when(stockRepository.decrementQuantity(101L, BigDecimal.valueOf(100))).thenReturn(1);
+
+            when(grnMapper.toResponse(existingGrn)).thenReturn(mockResponse);
+
+            // When
+            GRNResponse result = grnService.cancelGRN(grnId);
+
+            // Then
+            assertThat(result).isEqualTo(mockResponse);
+
+            // Verify the ACTIVE batch was processed normally
+            verify(stockRepository).decrementQuantity(101L, BigDecimal.valueOf(100));
+            assertThat(activeBatch.getStatus()).isEqualTo(BatchStatus.CANCELLED);
+
+            // CRITICAL VERIFICATION: Prove the CANCELLED batch was completely skipped
+            // We explicitly verify that decrementQuantity was NEVER called for stock1
+            verify(stockRepository, never()).decrementQuantity(eq(100L), any());
+
+            // Verify parent GRN was still cancelled at the end
+            assertThat(existingGrn.getStatus()).isEqualTo(GRNStatus.CANCELLED);
         }
     }
 

@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import jakarta.annotation.Nonnull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -56,23 +57,23 @@ public class GRNService {
     private final LocationRepository locationRepository;
 
     @Transactional
-    public GRNResponse createGRN(GRNCreateRequest request) {
+    public GRNResponse createGRN(@Nonnull GRNCreateRequest request) {
         log.info("Starting GRN creation for Invoice: {}", request.invoiceNum());
 
-        // 1. Fetch Supplier
+        // Fetch Supplier
         Supplier supplier =
                 supplierRepository
                         .findById(request.supplierId())
                         .orElseThrow(() -> new EntityNotFoundException("Supplier not found"));
 
-        // 2. Financial Verification
+        // Financial Verification (batch list cannot be null)
         validateFinancials(request);
 
-        // 3. Map Header
+        // Map Header
         GRN grn = grnMapper.toEntity(request);
         grn.setSupplier(supplier);
 
-        // 4. Process Batches in Memory first
+        // Process Batches in Memory first
         for (BatchRequest bReq : request.batches()) {
             Stock stock = getOrCreateStock(bReq.productSku(), bReq.locationId());
 
@@ -85,15 +86,14 @@ public class GRNService {
             grn.addBatch(batch);
 
             // Process associated product prices and link to Batch
-            bReq.prices()
-                    .forEach(
-                            pReq -> {
-                                ProductPrice price = priceMapper.toEntity(pReq);
-                                batch.addPrice(price);
-                            });
+            bReq.prices().forEach(
+                    pReq -> {
+                        ProductPrice price = priceMapper.toEntity(pReq);
+                        batch.addPrice(price);
+                    });
         }
 
-        // 5. One single Save
+        // One single Save
         GRN savedGrn = grnRepository.save(grn);
 
         return grnMapper.toResponse(savedGrn);
@@ -108,7 +108,7 @@ public class GRNService {
             LocalDate startDate,
             LocalDate endDate,
             Pageable pageable) {
-        // Step 1: Get Paged IDs with Filters
+        // Get Paged IDs with Filters
         Specification<GRN> spec =
                 GRNSpecification.withFilters(invoiceNum, supplierId, status, startDate, endDate);
         Page<GRN> grnPage = grnRepository.findAll(spec, pageable);
@@ -117,10 +117,10 @@ public class GRNService {
 
         List<Long> grnIds = grnPage.getContent().stream().map(GRN::getId).toList();
 
-        // Step 2: Fetch GRNs + Batches (1st Level Join)
+        // Fetch GRNs + Batches (1st Level Join)
         List<GRN> grnWithBatches = grnRepository.findAllByIdWithBatches(grnIds);
 
-        // Step 3: Fetch Batches + Prices (2nd Level Join)
+        // Fetch Batches + Prices (2nd Level Join)
         List<Long> batchIds =
                 grnWithBatches.stream()
                         .flatMap(g -> g.getBatches().stream())
@@ -133,7 +133,7 @@ public class GRNService {
             // already present in the Persistence Context (L1 Cache).
         }
 
-        // Step 4: Map to DTOs
+        // Map to DTOs
         List<GRNResponse> listOfDto =
                 grnWithBatches.stream().map(grnMapper::toResponse).collect(Collectors.toList());
 
@@ -152,22 +152,22 @@ public class GRNService {
     }
 
     @Transactional
-    public GRNResponse updateGRN(Long id, GRNUpdateRequest request) {
+    public GRNResponse updateGRN(Long id, @Nonnull GRNUpdateRequest request) {
         log.info("Updating GRN | ID: {}, Invoice: {}", id, request.invoiceNum());
 
-        // 1. Fetch existing record with details
+        // Fetch existing record with details
         GRN existingGrn =
                 grnRepository
                         .findByIdWithBatches(id)
                         .orElseThrow(
                                 () -> new EntityNotFoundException("GRN not found with id " + id));
 
-        // 2. Business Rule: Block updates on Cancelled records
+        // Business Rule: Block updates on Canceled records
         if (existingGrn.getStatus() == GRNStatus.CANCELLED) {
             throw new InvalidGRNStatusException("Cannot update a cancelled GRN");
         }
 
-        // 3. Update Supplier if changed
+        // Update Supplier if changed
         if (!existingGrn.getSupplier().getId().equals(request.supplierId())) {
             Supplier supplier =
                     supplierRepository
@@ -176,10 +176,10 @@ public class GRNService {
             existingGrn.setSupplier(supplier);
         }
 
-        // 4. Update non-critical fields
+        // Update non-critical fields
         existingGrn.setInvoiceNum(request.invoiceNum());
 
-        // 5. Financial Logic: Handle Discount changes
+        // Financial Logic: Handle Discount changes
         // We trust the calculated subtotal from the existing batches
         BigDecimal subTotal = existingGrn.getSubTotalAmount();
         BigDecimal newDiscount =
@@ -217,14 +217,19 @@ public class GRNService {
                 grn.getStatus(),
                 grn.getBatches().size());
 
-        // 1. Status checks
+        // Status checks
         if (grn.getStatus() == GRNStatus.CANCELLED) {
             log.warn("GRN already cancelled | GRN_ID={}", id);
             throw new InvalidGRNStatusException("GRN already cancelled");
         }
 
-        // 2. Process each batch
+        // Process each batch
         for (Batch batch : grn.getBatches()) {
+
+            if (batch.getStatus() == BatchStatus.CANCELLED) {
+                log.info("Skipping batch {} as it is already cancelled", batch.getId());
+                continue; // Move to the next batch in the loop
+            }
 
             log.debug(
                     "Processing batch | Batch_ID={}, Stock_ID={}, SKU={}, Qty={}",
@@ -252,20 +257,19 @@ public class GRNService {
                     batch.getStock().getId(),
                     batch.getQuantity());
 
-            // 3. Soft delete batch + prices
+            // Soft delete batch + prices
             batch.setStatus(BatchStatus.CANCELLED);
 
-            if (batch.getPrices() != null) {
-                batch.getPrices()
-                        .forEach(
-                                price -> {
-                                    price.setActive(false);
-                                    log.trace("Price disabled | Price_ID={}", price.getId());
-                                });
-            }
+            batch.getPrices()
+                    .forEach(
+                            price -> {
+                                price.setActive(false);
+                                log.trace("Price disabled | Price_ID={}", price.getId());
+                            });
+
         }
 
-        // 4. Soft delete GRN
+        // Soft delete GRN
         grn.setStatus(GRNStatus.CANCELLED);
 
         log.info("GRN cancellation completed successfully | GRN_ID={}", id);
@@ -275,13 +279,13 @@ public class GRNService {
 
     @Transactional
     public void purgeCancelledGRN(Long id) {
-        // 1. Fetch the GRN
+        // Fetch the GRN
         GRN grn =
                 grnRepository
                         .findById(id)
                         .orElseThrow(() -> new EntityNotFoundException("GRN not found"));
 
-        // 2. SAFETY CHECK: Only CANCELLED GRNs can be purged
+        // SAFETY CHECK: Only CANCELLED GRNs can be purged
         if (grn.getStatus() != GRNStatus.CANCELLED) {
             log.error(
                     "Security violation: Attempted to purge a non-cancelled GRN | ID: {} | Status:"
@@ -303,7 +307,11 @@ public class GRNService {
                 id);
     }
 
-    private void validateFinancials(GRNCreateRequest request) {
+    // =====================================================================
+    // Helper Methods
+    // =====================================================================
+
+    private void validateFinancials(@Nonnull GRNCreateRequest request) {
         BigDecimal calculatedSubTotal =
                 request.batches().stream()
                         .map(b -> b.costPrice().multiply(b.quantity()))
