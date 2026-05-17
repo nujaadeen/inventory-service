@@ -5,6 +5,8 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.zamzamsuper.inventory_service.dto.batch.BatchCreateRequest;
+import com.zamzamsuper.inventory_service.exception.InvalidStatusException;
 import jakarta.annotation.Nonnull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -13,14 +15,12 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.zamzamsuper.inventory_service.dto.batch.BatchRequest;
 import com.zamzamsuper.inventory_service.dto.grn.GRNCreateRequest;
 import com.zamzamsuper.inventory_service.dto.grn.GRNResponse;
 import com.zamzamsuper.inventory_service.dto.grn.GRNUpdateRequest;
 import com.zamzamsuper.inventory_service.enums.BatchStatus;
 import com.zamzamsuper.inventory_service.enums.GRNStatus;
 import com.zamzamsuper.inventory_service.exception.FinancialMismatchException;
-import com.zamzamsuper.inventory_service.exception.InvalidGRNStatusException;
 import com.zamzamsuper.inventory_service.exception.StockConflictException;
 import com.zamzamsuper.inventory_service.mapper.BatchMapper;
 import com.zamzamsuper.inventory_service.mapper.GRNMapper;
@@ -74,7 +74,7 @@ public class GRNService {
         grn.setSupplier(supplier);
 
         // Process Batches in Memory first
-        for (BatchRequest bReq : request.batches()) {
+        for (BatchCreateRequest bReq : request.batches()) {
             Stock stock = getOrCreateStock(bReq.productSku(), bReq.locationId());
 
             // Atomic Update in DB (Avoids Race Conditions)
@@ -128,7 +128,7 @@ public class GRNService {
                         .toList();
 
         if (!batchIds.isEmpty()) {
-            batchRepository.findAllWithPricesByIds(batchIds);
+            batchRepository.findAllByIdWithPrices(batchIds);
             // Hibernate automatically links these prices to the batches
             // already present in the Persistence Context (L1 Cache).
         }
@@ -164,11 +164,13 @@ public class GRNService {
 
         // Business Rule: Block updates on Canceled records
         if (existingGrn.getStatus() == GRNStatus.CANCELLED) {
-            throw new InvalidGRNStatusException("Cannot update a cancelled GRN");
+            throw new InvalidStatusException("Cannot update a cancelled GRN");
         }
 
         // Update Supplier if changed
-        if (!existingGrn.getSupplier().getId().equals(request.supplierId())) {
+        if (request.supplierId() != null &&
+                (existingGrn.getSupplier() == null ||
+                        !existingGrn.getSupplier().getId().equals(request.supplierId()))) {
             Supplier supplier =
                     supplierRepository
                             .findById(request.supplierId())
@@ -220,7 +222,7 @@ public class GRNService {
         // Status checks
         if (grn.getStatus() == GRNStatus.CANCELLED) {
             log.warn("GRN already cancelled | GRN_ID={}", id);
-            throw new InvalidGRNStatusException("GRN already cancelled");
+            throw new InvalidStatusException("GRN already cancelled");
         }
 
         // Process each batch
@@ -292,7 +294,7 @@ public class GRNService {
                             + " {}",
                     id,
                     grn.getStatus());
-            throw new InvalidGRNStatusException(
+            throw new InvalidStatusException(
                     "Only CANCELLED GRNs can be permanently deleted. Cancel the GRN first.");
         }
 

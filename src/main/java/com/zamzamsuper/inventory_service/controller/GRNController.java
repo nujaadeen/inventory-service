@@ -2,6 +2,7 @@ package com.zamzamsuper.inventory_service.controller;
 
 import java.time.LocalDate;
 
+import com.zamzamsuper.inventory_service.exception.BadRequestException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -51,11 +52,11 @@ public class GRNController {
         }
 
         if (endDate != null && startDate == null) {
-            throw new IllegalArgumentException("startDate is required when endDate is provided");
+            throw new BadRequestException("startDate is required when endDate is provided");
         }
 
         if (startDate != null && startDate.isAfter(endDate)) {
-            throw new IllegalArgumentException("The startDate cannot be after the endDate");
+            throw new BadRequestException("The startDate cannot be after the endDate");
         }
 
         Page<GRNResponse> response = grnService.getAllGRNs(invoiceNum, supplierId, status, startDate, endDate, pageable);

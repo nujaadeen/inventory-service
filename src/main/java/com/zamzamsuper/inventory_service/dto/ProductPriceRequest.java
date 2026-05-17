@@ -29,4 +29,5 @@ public record ProductPriceRequest(
 
         @PositiveOrZero(message = "Minimum price must be zero or positive")
         BigDecimal minPrice
-) {}
+) {
+}

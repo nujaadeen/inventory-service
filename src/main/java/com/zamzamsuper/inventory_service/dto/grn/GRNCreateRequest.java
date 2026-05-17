@@ -3,7 +3,7 @@ package com.zamzamsuper.inventory_service.dto.grn;
 import java.math.BigDecimal;
 import java.util.List;
 
-import com.zamzamsuper.inventory_service.dto.batch.BatchRequest;
+import com.zamzamsuper.inventory_service.dto.batch.BatchCreateRequest;
 import com.zamzamsuper.inventory_service.enums.GRNStatus;
 
 import jakarta.validation.Valid;
@@ -34,6 +34,6 @@ public record GRNCreateRequest(
 
         @NotNull(message = "Batches list must be provided (can be empty)")
         @Valid // This ensures the objects inside the list are also validated if the list is not empty
-        List<BatchRequest> batches
+        List<BatchCreateRequest> batches
 ) {
 }

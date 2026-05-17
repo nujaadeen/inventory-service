@@ -3,7 +3,7 @@ package com.zamzamsuper.inventory_service.mapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-import com.zamzamsuper.inventory_service.dto.batch.BatchRequest;
+import com.zamzamsuper.inventory_service.dto.batch.BatchCreateRequest;
 import com.zamzamsuper.inventory_service.dto.batch.BatchResponse;
 import com.zamzamsuper.inventory_service.model.Batch;
 
@@ -23,5 +23,5 @@ public interface BatchMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "status", defaultValue = "ACTIVE")
-    Batch toEntity(BatchRequest request);
+    Batch toEntity(BatchCreateRequest request);
 }

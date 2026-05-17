@@ -7,6 +7,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
+import com.zamzamsuper.inventory_service.dto.batch.BatchCreateRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -15,7 +16,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.zamzamsuper.inventory_service.dto.batch.BatchRequest;
 import com.zamzamsuper.inventory_service.dto.batch.BatchResponse;
 import com.zamzamsuper.inventory_service.dto.ProductPriceRequest;
 import com.zamzamsuper.inventory_service.dto.grn.GRNCreateRequest;
@@ -150,8 +150,8 @@ class GRNMapperTest {
                     BigDecimal.valueOf(75),
                     BigDecimal.valueOf(70));
 
-            BatchRequest batchRequest =
-                new BatchRequest(
+            BatchCreateRequest batchRequest =
+                new BatchCreateRequest(
                     null,
                     "SKU-001",
                     1L,

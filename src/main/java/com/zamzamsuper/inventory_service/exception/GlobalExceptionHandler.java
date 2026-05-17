@@ -40,8 +40,8 @@ public class GlobalExceptionHandler {
 
     // 3. Handle Invalid Status Transitions (409 Conflict)
     @SuppressWarnings("unused")
-    @ExceptionHandler(InvalidGRNStatusException.class)
-    public ResponseEntity<ErrorResponse> handleInvalidStatus(InvalidGRNStatusException ex) {
+    @ExceptionHandler(InvalidStatusException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidStatus(InvalidStatusException ex) {
         log.warn("Invalid State Transition: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(ErrorResponse.of(ex.getMessage(), null));
@@ -107,7 +107,15 @@ public class GlobalExceptionHandler {
                 .body(ErrorResponse.of(message, null));
     }
 
-    // 9. Handle Unexpected Errors (500)
+    // 9. Handle Common Bad Request Errors (400)
+    @SuppressWarnings("unused")
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<ErrorResponse> handleBadRequest(BadRequestException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ErrorResponse.of(ex.getMessage(), null));
+    }
+
+    // 10. Handle Unexpected Errors (500)
     @SuppressWarnings("unused")
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGeneralException(Exception ex) {

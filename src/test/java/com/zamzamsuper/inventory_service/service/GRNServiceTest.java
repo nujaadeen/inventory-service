@@ -11,8 +11,9 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+import com.zamzamsuper.inventory_service.dto.batch.BatchCreateRequest;
 import com.zamzamsuper.inventory_service.dto.grn.GRNUpdateRequest;
-import com.zamzamsuper.inventory_service.exception.InvalidGRNStatusException;
+import com.zamzamsuper.inventory_service.exception.InvalidStatusException;
 import com.zamzamsuper.inventory_service.exception.StockConflictException;
 import com.zamzamsuper.inventory_service.repository.*;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,7 +26,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.zamzamsuper.inventory_service.dto.batch.BatchRequest;
 import com.zamzamsuper.inventory_service.dto.ProductPriceRequest;
 import com.zamzamsuper.inventory_service.dto.grn.GRNCreateRequest;
 import com.zamzamsuper.inventory_service.dto.grn.GRNResponse;
@@ -101,7 +101,7 @@ class GRNServiceTest {
             when(stockRepository.findByProductSkuAndLocationId("SKU-123", 10L))
                     .thenReturn(Optional.of(stock));
 
-            when(batchMapper.toEntity(any(BatchRequest.class))).thenReturn(mappedBatch);
+            when(batchMapper.toEntity(any(BatchCreateRequest.class))).thenReturn(mappedBatch);
             when(priceMapper.toEntity(any(ProductPriceRequest.class))).thenReturn(mappedPrice);
             when(grnRepository.save(mappedGrn)).thenReturn(mappedGrn);
             when(grnMapper.toResponse(mappedGrn)).thenReturn(expectedResponse);
@@ -137,11 +137,13 @@ class GRNServiceTest {
             when(grnMapper.toEntity(request)).thenReturn(mappedGrn);
 
             // Stock DOES NOT exist
-            when(stockRepository.findByProductSkuAndLocationId("SKU-123", 10L)).thenReturn(Optional.empty());
+            when(stockRepository
+                    .findByProductSkuAndLocationId("SKU-123", 10L))
+                    .thenReturn(Optional.empty());
             when(locationRepository.findById(10L)).thenReturn(Optional.of(location));
             when(stockRepository.save(any(Stock.class))).thenReturn(newStock);
 
-            when(batchMapper.toEntity(any(BatchRequest.class))).thenReturn(mappedBatch);
+            when(batchMapper.toEntity(any(BatchCreateRequest.class))).thenReturn(mappedBatch);
             when(priceMapper.toEntity(any(ProductPriceRequest.class))).thenReturn(mappedPrice);
             when(grnRepository.save(mappedGrn)).thenReturn(mappedGrn);
             when(grnMapper.toResponse(mappedGrn)).thenReturn(expectedResponse);
@@ -192,7 +194,9 @@ class GRNServiceTest {
             when(grnMapper.toEntity(request)).thenReturn(mappedGrn);
 
             // Stock DOES NOT exist
-            when(stockRepository.findByProductSkuAndLocationId("SKU-123", 10L)).thenReturn(Optional.empty());
+            when(stockRepository
+                    .findByProductSkuAndLocationId("SKU-123", 10L))
+                    .thenReturn(Optional.empty());
 
             // Location lookup fails
             when(locationRepository.findById(10L)).thenReturn(Optional.empty());
@@ -295,7 +299,7 @@ class GRNServiceTest {
             // 4. Mock Step 3: The Level-2 Join (Batches -> Prices)
             // It returns a list, but the service ignores it (relies on Hibernate L1 cache),
             // so returning an empty list for the mock is fine.
-            when(batchRepository.findAllWithPricesByIds(List.of(50L)))
+            when(batchRepository.findAllByIdWithPrices(List.of(50L)))
                     .thenReturn(emptyList());
 
             // 5. Mock Step 4: The Mapper
@@ -312,7 +316,7 @@ class GRNServiceTest {
 
             // Verify the sequence of calls happened correctly
             verify(grnRepository).findAllByIdWithBatches(List.of(1L));
-            verify(batchRepository).findAllWithPricesByIds(List.of(50L));
+            verify(batchRepository).findAllByIdWithPrices(List.of(50L));
             verify(grnMapper).toResponse(grn);
         }
 
@@ -478,8 +482,11 @@ class GRNServiceTest {
                     .grandTotalAmount(BigDecimal.valueOf(490.00))
                     .build();
 
+            // supplierId is provided → should trigger supplier change
             // Request has a NEW supplier (2L) and a valid discount (50)
-            GRNUpdateRequest request = new GRNUpdateRequest(2L, "INV-999", BigDecimal.valueOf(50.00));
+            GRNUpdateRequest request =
+                    new GRNUpdateRequest(2L, "INV-999", BigDecimal.valueOf(50.00));
+
             GRNResponse mockResponse = mock(GRNResponse.class);
 
             when(grnRepository.findByIdWithBatches(grnId)).thenReturn(Optional.of(existingGrn));
@@ -539,7 +546,7 @@ class GRNServiceTest {
 
             // Then
             assertThat(thrown)
-                    .isInstanceOf(InvalidGRNStatusException.class)
+                    .isInstanceOf(InvalidStatusException.class)
                     .hasMessageContaining("Cannot update a cancelled GRN");
 
             verify(grnRepository, never()).save(any());
@@ -590,7 +597,8 @@ class GRNServiceTest {
                     .build();
 
             // Request discount is 150 (invalid)
-            GRNUpdateRequest request = new GRNUpdateRequest(1L, "INV-123", BigDecimal.valueOf(150.00));
+            GRNUpdateRequest request =
+                    new GRNUpdateRequest(1L, "INV-123", BigDecimal.valueOf(150.00));
 
             when(grnRepository.findByIdWithBatches(grnId)).thenReturn(Optional.of(existingGrn));
 
@@ -660,6 +668,45 @@ class GRNServiceTest {
         }
 
         @Test
+        @DisplayName("Should NOT update supplier when supplierId is null")
+        void updateGRN_WhenSupplierIdIsNull_ShouldNotChangeSupplier() {
+            // Given
+            Long grnId = 1L;
+
+            Supplier existingSupplier = Supplier.builder().id(1L).build();
+
+            GRN existingGrn = GRN.builder()
+                    .id(grnId)
+                    .supplier(existingSupplier)
+                    .status(GRNStatus.DRAFT)
+                    .subTotalAmount(BigDecimal.valueOf(500.00))
+                    .build();
+
+            // supplierId = null (optional field)
+            GRNUpdateRequest request =
+                    new GRNUpdateRequest(null, "INV-999", BigDecimal.valueOf(20.00));
+
+            GRNResponse mockResponse = mock(GRNResponse.class);
+
+            when(grnRepository.findByIdWithBatches(grnId)).thenReturn(Optional.of(existingGrn));
+            when(grnMapper.toResponse(existingGrn)).thenReturn(mockResponse);
+
+            // When
+            GRNResponse result = grnService.updateGRN(grnId, request);
+
+            // Then
+            assertThat(result).isEqualTo(mockResponse);
+
+            // supplier must NOT be queried or changed
+            verifyNoInteractions(supplierRepository);
+
+            assertThat(existingGrn.getSupplier()).isEqualTo(existingSupplier);
+
+            assertThat(existingGrn.getTotalDiscount()).isEqualByComparingTo("20.00");
+            assertThat(existingGrn.getGrandTotalAmount()).isEqualByComparingTo("480.00");
+        }
+
+        @Test
         @DisplayName("Should throw EntityNotFoundException if GRN does not exist")
         void cancelGRN_WhenGrnNotFound_ThrowsException() {
             // Given
@@ -695,7 +742,7 @@ class GRNServiceTest {
 
             // Then
             assertThat(thrown)
-                    .isInstanceOf(InvalidGRNStatusException.class)
+                    .isInstanceOf(InvalidStatusException.class)
                     .hasMessageContaining("GRN already cancelled");
 
             // Verify no stock operations were attempted
@@ -707,8 +754,11 @@ class GRNServiceTest {
         void cancelGRN_WhenStockConflictOccurs_ThrowsException() {
             // Given
             Long grnId = 1L;
-            Stock stock1 = Stock.builder().id(100L).productSku("SKU-123").quantityOnHand(BigDecimal.valueOf(1000)).build();
-            Stock stock2 = Stock.builder().id(101L).productSku("SKU-124").quantityOnHand(BigDecimal.valueOf(250)).build();
+            Stock stock1 =
+                    Stock.builder().id(100L).productSku("SKU-123").quantityOnHand(BigDecimal.valueOf(1000)).build();
+
+            Stock stock2 =
+                    Stock.builder().id(101L).productSku("SKU-124").quantityOnHand(BigDecimal.valueOf(250)).build();
 
             Batch batch1 = Batch.builder()
                     .id(50L)
@@ -882,7 +932,7 @@ class GRNServiceTest {
 
             // Then
             assertThat(thrown)
-                    .isInstanceOf(InvalidGRNStatusException.class)
+                    .isInstanceOf(InvalidStatusException.class)
                     .hasMessageContaining("Only CANCELLED GRNs can be permanently deleted");
 
             // Verify that the deletion was strictly blocked
@@ -906,7 +956,7 @@ class GRNServiceTest {
 
             // Then
             assertThat(thrown)
-                    .isInstanceOf(InvalidGRNStatusException.class);
+                    .isInstanceOf(InvalidStatusException.class);
 
             verify(grnRepository, never()).delete((GRN) any());
         }
@@ -931,12 +981,12 @@ class GRNServiceTest {
         );
     }
 
-    private BatchRequest buildBatchRequest() {
+    private BatchCreateRequest buildBatchRequest() {
         ProductPriceRequest priceRequest = new ProductPriceRequest(
                 null, PriceType.RETAIL, true, 1,
                 BigDecimal.valueOf(15), BigDecimal.valueOf(10));
 
-        return new BatchRequest(
+        return new BatchCreateRequest(
                 null,
                 "SKU-123",
                 10L,

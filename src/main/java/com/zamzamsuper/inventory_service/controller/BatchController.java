@@ -1,59 +1,95 @@
 package com.zamzamsuper.inventory_service.controller;
 
-import java.util.List;
+import java.time.LocalDate;
 
-import com.zamzamsuper.inventory_service.dto.validation.StandaloneBatchCreation;
-import jakarta.validation.groups.Default;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import com.zamzamsuper.inventory_service.dto.batch.BatchRequest;
+import com.zamzamsuper.inventory_service.dto.batch.BatchCreateRequest;
 import com.zamzamsuper.inventory_service.dto.batch.BatchResponse;
+import com.zamzamsuper.inventory_service.dto.batch.BatchUpdateRequest;
+import com.zamzamsuper.inventory_service.dto.success.SuccessResponse;
+import com.zamzamsuper.inventory_service.dto.validation.StandaloneBatchCreation;
+import com.zamzamsuper.inventory_service.enums.BatchStatus;
+import com.zamzamsuper.inventory_service.exception.BadRequestException;
 import com.zamzamsuper.inventory_service.service.BatchService;
 
+import jakarta.validation.Valid;
+import jakarta.validation.groups.Default;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/inventory/batch")
+@RequestMapping("/api/v1/inventory/batches")
 public class BatchController {
 
     private final BatchService batchService;
 
     @PostMapping
-    public ResponseEntity<BatchResponse> createBatch(
-            @Validated({StandaloneBatchCreation.class, Default.class})
-            @RequestBody BatchRequest request) {
-        return ResponseEntity.ok(batchService.createBatch(request));
+    public ResponseEntity<SuccessResponse<BatchResponse>> createBatch(
+            // Uses the marker interface to require grnId for standalone batch creation
+            @Validated({StandaloneBatchCreation.class, Default.class}) @RequestBody BatchCreateRequest request) {
+
+        log.info("Received request to create standalone Batch: {}", request);
+        BatchResponse response = batchService.createBatch(request);
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(SuccessResponse.of("Batch created successfully", response));
     }
 
     @GetMapping
-    public ResponseEntity<List<BatchResponse>> getAllBatches() {
-        return ResponseEntity.ok(batchService.getAllBatches());
+    public ResponseEntity<SuccessResponse<Page<BatchResponse>>> getAllBatches(
+            @RequestParam(required = false) String productSku,
+            @RequestParam(required = false) String batchNumber,
+            @RequestParam(required = false) BatchStatus status,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate expiryStartDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate expiryEndDate,
+            Pageable pageable) {
+
+        // Logic Check: Ensure dates are in the correct order if both are provided
+        if (expiryStartDate != null && expiryEndDate != null && expiryStartDate.isAfter(expiryEndDate)) {
+            throw new BadRequestException("The expiryStartDate cannot be after the expiryEndDate");
+        }
+
+        Page<BatchResponse> response = batchService.getAllBatches(
+                productSku, batchNumber, status, expiryStartDate, expiryEndDate, pageable);
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(SuccessResponse.of("Batches fetched successfully", response));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<BatchResponse> getBatchById(@PathVariable Long id) {
-        return ResponseEntity.ok(batchService.getBatchById(id));
+    public ResponseEntity<SuccessResponse<BatchResponse>> getBatchById(@PathVariable Long id) {
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(SuccessResponse.of("Batch fetched successfully", batchService.getBatchById(id)));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<BatchResponse> updateBatch(
-            @PathVariable Long id, @RequestBody BatchRequest request) {
-        return ResponseEntity.ok(batchService.updateBatch(id, request));
+    public ResponseEntity<SuccessResponse<BatchResponse>> updateBatch(
+            @PathVariable Long id, @Valid @RequestBody BatchUpdateRequest request) {
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(SuccessResponse.of("Batch updated successfully", batchService.updateBatch(id, request)));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteBatch(@PathVariable Long id) {
-        batchService.deleteBatch(id);
-        return ResponseEntity.noContent().build();
+    @PatchMapping("/{id}/cancel")
+    public ResponseEntity<SuccessResponse<BatchResponse>> cancelBatch(@PathVariable Long id) {
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(SuccessResponse.of("Batch cancelled successfully", batchService.cancelBatch(id)));
+    }
+
+    @DeleteMapping("/{id}/permanent")
+    public ResponseEntity<SuccessResponse<Void>> purgeCancelledBatch(@PathVariable Long id) {
+        batchService.purgeCancelledBatch(id);
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(SuccessResponse.of("Batch permanently deleted", null));
     }
 }
