@@ -2,7 +2,10 @@ package com.zamzamsuper.inventory_service.controller;
 
 import java.util.List;
 
+import com.zamzamsuper.inventory_service.dto.validation.StandaloneBatchCreation;
+import jakarta.validation.groups.Default;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -12,8 +15,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.zamzamsuper.inventory_service.dto.BatchRequest;
-import com.zamzamsuper.inventory_service.dto.BatchResponse;
+import com.zamzamsuper.inventory_service.dto.batch.BatchRequest;
+import com.zamzamsuper.inventory_service.dto.batch.BatchResponse;
 import com.zamzamsuper.inventory_service.service.BatchService;
 
 import lombok.RequiredArgsConstructor;
@@ -26,7 +29,9 @@ public class BatchController {
     private final BatchService batchService;
 
     @PostMapping
-    public ResponseEntity<BatchResponse> createBatch(@RequestBody BatchRequest request) {
+    public ResponseEntity<BatchResponse> createBatch(
+            @Validated({StandaloneBatchCreation.class, Default.class})
+            @RequestBody BatchRequest request) {
         return ResponseEntity.ok(batchService.createBatch(request));
     }
 

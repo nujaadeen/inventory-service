@@ -13,7 +13,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.zamzamsuper.inventory_service.dto.BatchRequest;
+import com.zamzamsuper.inventory_service.dto.batch.BatchRequest;
 import com.zamzamsuper.inventory_service.dto.grn.GRNCreateRequest;
 import com.zamzamsuper.inventory_service.dto.grn.GRNResponse;
 import com.zamzamsuper.inventory_service.dto.grn.GRNUpdateRequest;

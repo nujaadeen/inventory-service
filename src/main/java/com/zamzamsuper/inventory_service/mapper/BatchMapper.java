@@ -3,8 +3,8 @@ package com.zamzamsuper.inventory_service.mapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-import com.zamzamsuper.inventory_service.dto.BatchRequest;
-import com.zamzamsuper.inventory_service.dto.BatchResponse;
+import com.zamzamsuper.inventory_service.dto.batch.BatchRequest;
+import com.zamzamsuper.inventory_service.dto.batch.BatchResponse;
 import com.zamzamsuper.inventory_service.model.Batch;
 
 @Mapper(

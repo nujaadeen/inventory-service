@@ -2,7 +2,10 @@ package com.zamzamsuper.inventory_service.controller;
 
 import java.util.List;
 
+import com.zamzamsuper.inventory_service.dto.validation.StandalonePriceCreation;
+import jakarta.validation.groups.Default;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -27,6 +30,7 @@ public class ProductPriceController {
 
     @PostMapping
     public ResponseEntity<ProductPriceResponse> createPrice(
+            @Validated({StandalonePriceCreation.class, Default.class})
             @RequestBody ProductPriceRequest request) {
         return ResponseEntity.ok(productPriceService.createPrice(request));
     }

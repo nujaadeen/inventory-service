@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import com.zamzamsuper.inventory_service.dto.BatchResponse;
+import com.zamzamsuper.inventory_service.dto.batch.BatchResponse;
 import com.zamzamsuper.inventory_service.enums.GRNStatus;
 
 public record GRNResponse(
@@ -18,4 +18,6 @@ public record GRNResponse(
         GRNStatus status,
         List<BatchResponse> batches,
         LocalDateTime createdAt,
-        LocalDateTime updatedAt) {}
+        LocalDateTime updatedAt
+) {
+}

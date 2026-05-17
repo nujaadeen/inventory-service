@@ -7,8 +7,8 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.zamzamsuper.inventory_service.dto.BatchRequest;
-import com.zamzamsuper.inventory_service.dto.BatchResponse;
+import com.zamzamsuper.inventory_service.dto.batch.BatchRequest;
+import com.zamzamsuper.inventory_service.dto.batch.BatchResponse;
 import com.zamzamsuper.inventory_service.dto.ProductPriceRequest;
 import com.zamzamsuper.inventory_service.mapper.BatchMapper;
 import com.zamzamsuper.inventory_service.mapper.ProductPriceMapper;

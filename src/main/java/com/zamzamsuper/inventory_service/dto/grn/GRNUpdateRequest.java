@@ -7,6 +7,13 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
 
 public record GRNUpdateRequest(
-        @NotNull(message = "Supplier ID is required") Long supplierId,
-        @NotBlank(message = "Invoice number cannot be empty") String invoiceNum,
-        @PositiveOrZero(message = "Discount cannot be negative") BigDecimal totalDiscount) {}
+        @NotNull(message = "Supplier ID is required")
+        Long supplierId,
+
+        @NotBlank(message = "Invoice number cannot be empty")
+        String invoiceNum,
+
+        @PositiveOrZero(message = "Discount cannot be negative")
+        BigDecimal totalDiscount
+) {
+}

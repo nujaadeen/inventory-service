@@ -25,7 +25,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.zamzamsuper.inventory_service.dto.BatchRequest;
+import com.zamzamsuper.inventory_service.dto.batch.BatchRequest;
 import com.zamzamsuper.inventory_service.dto.ProductPriceRequest;
 import com.zamzamsuper.inventory_service.dto.grn.GRNCreateRequest;
 import com.zamzamsuper.inventory_service.dto.grn.GRNResponse;
